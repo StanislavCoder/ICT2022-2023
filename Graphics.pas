@@ -1,5 +1,5 @@
-﻿//uses GraphWPF;
-uses GraphABC;
+﻿uses GraphWPF;
+//uses GraphABC;
 
 type point = record
   x, y: real;
@@ -45,13 +45,14 @@ begin
     if ymax<p[i].y then
       ymax:=p[i].y;   
   end;
-  var k := Min(Window.Width / (xmax-xmin), Window.Height / (ymax-ymin));
-//  SetMathematicCoords(k, -k*xmin, k*ymax);
-  //SetMathematicCoords(k, 0, 0);
-  //DrawGrid;
   
-  for var i:=0 to p.Length-1 do
-    Circle(round(k * p[i].x - k * xmin), round(-k * p[i].y + k * ymax), 2);
+  Window.Title:='Построение сети минимального веса';
+  if (ymax - ymin) * Window.Width / Window.Height > xmax - xmin then
+    SetMathematicCoords(xmin - 1, xmin + (ymax - ymin) * Window.Width / Window.Height + 2, ymin - 1, true)
+  else
+    SetMathematicCoords(xmin - 1, xmax + 1, ymin - 1, true);
+  for var i := 0 to p.Length - 1 do
+    Circle(p[i].x, p[i].y, 0.05);
 end;
 
 procedure repaint(var c:array of integer; a,b:integer);
@@ -66,14 +67,14 @@ begin
   var n := read_points(p);
   draw_points(p);
   
-  p.Println;
+  //p.Println;
   
-  var d := new real [n, n];
+  {var d := new real [n, n];
   for var i:=0 to n-1 do
     for var j:=0 to n-1 do begin
       d[i, j] := sqrt(sqr(p[i].x-p[j].x)+sqr(p[i].y-p[j].y));
     end;
-  d.Println;
+  d.Println;}
   
   var edges:=new edge [n*(n-1) div 2];
   var cur:=0; // номер текущего ребра
@@ -86,7 +87,7 @@ begin
     end;
   end;
   sort(edges,compare_edges);
-  edges.Println;
+  //edges.Println;
   
   //KRUSKAL
   var color:=new integer [n]; // color[i] - цвет вершины #i
@@ -98,11 +99,12 @@ begin
   var ind:=0; // индекс ребра
   while cnt<n-1 do begin
     if color[edges[ind].s]<>color[edges[ind].q] then begin
+      Line(p[edges[ind].s].x, p[edges[ind].s].y, p[edges[ind].q].x, p[edges[ind].q].y, RGB(255,0,0));
       weight+=edges[ind].d;
       repaint(color,color[edges[ind].q],color[edges[ind].s]);
       cnt+=1;
     end;
     ind+=1;
   end;
-  writeln(weight);
+  writeln('Суммарный вес сети равен ', weight);
 end.
